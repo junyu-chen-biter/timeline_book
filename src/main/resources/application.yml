@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: pkms-backend
+  datasource:
+    # File-based H2 database stored in ./data folder
+    url: jdbc:h2:file:./data/pkms_db;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update # Automatically update schema
+    show-sql: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+server:
+  port: 8080
+
+pkms:
+  upload-dir: ./uploads
