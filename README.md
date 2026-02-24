@@ -77,4 +77,4 @@ npm run dev
 本项目完全开源，欢迎 Fork 和 PR！如果你觉得好用，请给一个 Star ⭐️。
 
 ---
-*Created by [Your Name]*
+*Created by Marquez_chen*
