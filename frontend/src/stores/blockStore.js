@@ -63,6 +63,22 @@ export const useBlockStore = defineStore('block', () => {
     }
   }
 
+  // 删除文件/文件夹
+  const deleteBlock = async (id) => {
+    try {
+      await axios.delete(`/api/blocks/${id}`)
+      ElMessage.success('删除成功')
+      triggerRefresh() // Refresh the tree
+      // If the deleted block was selected, clear selection
+      if (currentBlock.value && currentBlock.value.id === id) {
+        currentBlock.value = null
+      }
+    } catch (error) {
+      console.error("Delete failed", error)
+      ElMessage.error('删除失败')
+    }
+  }
+
   // 保存笔记
   const saveNote = async (note) => {
     if (!currentBlock.value) return
@@ -78,10 +94,13 @@ export const useBlockStore = defineStore('block', () => {
   }
 
   // 打卡
-  const reviewCheckIn = async () => {
+  const reviewCheckIn = async (progress = 100, isMastered = false) => {
     if (!currentBlock.value) return
     try {
-      const res = await axios.post(`/api/study/${currentBlock.value.id}/review`)
+      const res = await axios.post(`/api/study/${currentBlock.value.id}/review`, {
+        progress,
+        isMastered
+      })
       currentRecord.value = res.data
       ElMessage.success('复习打卡成功！')
     } catch (e) {
@@ -96,6 +115,7 @@ export const useBlockStore = defineStore('block', () => {
     triggerRefresh,
     uploadFile,
     createFolder,
+    deleteBlock,
     currentRecord,
     loadRecord,
     saveNote,

@@ -21,4 +21,10 @@ public class StudyRecord {
     private String note; // Markdown or HTML notes
 
     private Integer reviewCount = 0;
+
+    @Column(columnDefinition = "integer default 100")
+    private Integer lastReviewProgress = 100;
+
+    @Column(columnDefinition = "boolean default false")
+    private Boolean isMastered = false;
 }

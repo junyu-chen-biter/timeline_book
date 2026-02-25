@@ -8,24 +8,39 @@
       </div>
     </div>
 
-    <!-- Note Editor -->
-    <div class="flex-1 p-4 flex flex-col">
-      <label class="text-sm font-medium text-gray-600 mb-2">笔记 / 疑惑点</label>
-      <textarea 
-        v-model="noteContent"
-        class="flex-1 w-full p-2 border border-gray-300 rounded resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
-        placeholder="在这里记录你的想法..."
-      ></textarea>
-      <div class="mt-2 flex justify-end">
-        <el-button type="primary" size="small" @click="handleSaveNote">保存笔记</el-button>
+    <!-- Action Area -->
+    <div class="p-3 bg-gray-50 border-b border-gray-100 flex flex-col gap-3">
+      <!-- Progress Slider -->
+      <div class="px-1">
+        <div class="flex justify-between text-xs text-gray-500 mb-1">
+          <span>复习进度</span>
+          <span>{{ reviewProgress }}%</span>
+        </div>
+        <el-slider v-model="reviewProgress" :min="10" :step="10" show-stops size="small" />
       </div>
+
+      <div class="flex gap-2">
+        <el-button type="success" class="flex-1" @click="handleReview">
+          ✅ 完成复习
+        </el-button>
+        <el-button type="warning" class="flex-1" @click="handleMaster">
+          🏆 彻底掌握
+        </el-button>
+      </div>
+      
+      <el-button type="primary" class="w-full" @click="handleSaveNote">
+        💾 保存笔记
+      </el-button>
     </div>
 
-    <!-- Review Action -->
-    <div class="p-4 border-t border-gray-100 bg-gray-50">
-      <el-button type="success" class="w-full" size="large" @click="handleReview">
-        ✅ 完成本次复习
-      </el-button>
+    <!-- Note Editor -->
+    <div class="flex-1 p-3 flex flex-col overflow-hidden">
+      <label class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">笔记 / 疑惑点</label>
+      <textarea 
+        v-model="noteContent"
+        class="flex-1 w-full p-3 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm transition-all shadow-sm"
+        placeholder="在这里记录你的想法..."
+      ></textarea>
     </div>
   </div>
 </template>
@@ -37,13 +52,16 @@ import dayjs from 'dayjs'
 
 const blockStore = useBlockStore()
 const noteContent = ref('')
+const reviewProgress = ref(100)
 
 // 同步 Store 中的记录到本地状态
 watch(() => blockStore.currentRecord, (newRecord) => {
   if (newRecord) {
     noteContent.value = newRecord.note || ''
+    reviewProgress.value = newRecord.lastReviewProgress || 100
   } else {
     noteContent.value = ''
+    reviewProgress.value = 100
   }
 }, { immediate: true })
 
@@ -59,6 +77,10 @@ const handleSaveNote = () => {
 }
 
 const handleReview = () => {
-  blockStore.reviewCheckIn()
+  blockStore.reviewCheckIn(reviewProgress.value, false)
+}
+
+const handleMaster = () => {
+  blockStore.reviewCheckIn(100, true)
 }
 </script>

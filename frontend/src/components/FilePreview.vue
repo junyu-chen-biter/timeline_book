@@ -10,7 +10,7 @@
     <!-- Markdown Preview -->
     <div 
       v-else-if="block.type === 'MARKDOWN'" 
-      class="w-full h-full overflow-auto p-8 bg-white prose max-w-none"
+      class="w-full h-full overflow-auto p-4 bg-white prose max-w-none"
       v-html="mdContent"
     ></div>
 

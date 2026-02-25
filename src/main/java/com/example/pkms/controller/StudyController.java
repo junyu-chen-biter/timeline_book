@@ -1,5 +1,6 @@
 package com.example.pkms.controller;
 
+import com.example.pkms.dto.ReviewRequest;
 import com.example.pkms.entity.StudyRecord;
 import com.example.pkms.repository.StudyRecordRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,24 +36,32 @@ public class StudyController {
                     newRecord.setBlockId(blockId);
                     return newRecord;
                 });
-        
+
         record.setNote(noteContent);
         return studyRecordRepository.save(record);
     }
 
     // Mark as Reviewed (Check-in)
     @PostMapping("/{blockId}/review")
-    public StudyRecord review(@PathVariable Long blockId) {
+    public StudyRecord review(@PathVariable Long blockId, @RequestBody(required = false) ReviewRequest request) {
         StudyRecord record = studyRecordRepository.findByBlockId(blockId)
                 .orElseGet(() -> {
                     StudyRecord newRecord = new StudyRecord();
                     newRecord.setBlockId(blockId);
                     return newRecord;
                 });
-        
+
         record.setLastReviewTime(LocalDateTime.now());
         record.setReviewCount(record.getReviewCount() == null ? 1 : record.getReviewCount() + 1);
-        
+
+        if (request != null) {
+            record.setLastReviewProgress(request.getProgress() != null ? request.getProgress() : 100);
+            record.setIsMastered(request.getIsMastered() != null ? request.getIsMastered() : false);
+        } else {
+            record.setLastReviewProgress(100);
+            record.setIsMastered(false);
+        }
+
         return studyRecordRepository.save(record);
     }
 }

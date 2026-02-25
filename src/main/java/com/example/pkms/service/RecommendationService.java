@@ -76,6 +76,27 @@ public class RecommendationService {
             }
         }
 
+        // --- 4. Mastery & Progress ---
+        if (record != null) {
+            if (Boolean.TRUE.equals(record.getIsMastered())) {
+                return new BlockRecommendationDTO(
+                    block, 
+                    0.0, 
+                    record.getLastReviewTime(), 
+                    "Mastered"
+                );
+            }
+            
+            Integer progress = record.getLastReviewProgress() != null ? record.getLastReviewProgress() : 100;
+            if (progress < 100) {
+                // If not fully reviewed, increase priority
+                // E.g. 10% progress -> multiplier 5.5
+                // 50% progress -> multiplier 3.5
+                double progressFactor = 1.0 + (100 - progress) / 20.0;
+                score *= progressFactor;
+            }
+        }
+
         return new BlockRecommendationDTO(
             block, 
             score, 

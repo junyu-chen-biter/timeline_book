@@ -2,8 +2,8 @@
   <div class="flex h-screen w-full bg-gray-50 overflow-hidden">
     
     <!-- Left Sidebar: Resource Tree -->
-    <div class="w-72 bg-white border-r border-gray-200 flex flex-col">
-      <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+    <div class="w-[20%] min-w-[200px] bg-white border-r border-gray-200 flex flex-col">
+      <div class="p-3 border-b border-gray-100 flex justify-between items-center">
         <h2 class="font-bold text-gray-700">资源库</h2>
         <div class="space-x-2">
           <el-button size="small" :icon="FolderAdd" circle @click="handleCreateFolder" />
@@ -22,13 +22,24 @@
           highlight-current
         >
           <template #default="{ node, data }">
-            <span class="custom-tree-node flex items-center gap-2">
-              <el-icon v-if="data.type === 'FOLDER'"><Folder /></el-icon>
-              <el-icon v-else-if="data.type === 'PDF'"><Document /></el-icon>
-              <el-icon v-else-if="data.type === 'MARKDOWN'"><EditPen /></el-icon>
-              <el-icon v-else><Files /></el-icon>
-              <span class="truncate">{{ node.label }}</span>
-            </span>
+            <div class="custom-tree-node flex items-center justify-between w-full pr-2 group">
+              <span class="flex items-center gap-2 overflow-hidden">
+                <el-icon v-if="data.type === 'FOLDER'"><Folder /></el-icon>
+                <el-icon v-else-if="data.type === 'PDF'"><Document /></el-icon>
+                <el-icon v-else-if="data.type === 'MARKDOWN'"><EditPen /></el-icon>
+                <el-icon v-else><Files /></el-icon>
+                <span class="truncate">{{ node.label }}</span>
+              </span>
+              <!-- Delete Button (Visible on hover) -->
+              <el-button 
+                type="danger" 
+                link 
+                :icon="Delete" 
+                size="small" 
+                class="opacity-0 group-hover:opacity-100 transition-opacity"
+                @click.stop="handleDelete(data)"
+              />
+            </div>
           </template>
         </el-tree>
       </el-scrollbar>
@@ -55,7 +66,7 @@
     </div>
 
     <!-- Right Sidebar: Study Tools -->
-    <div class="w-96 bg-white border-l border-gray-200 flex flex-col shadow-xl z-10" v-if="blockStore.currentBlock">
+    <div class="w-[30%] min-w-[300px] bg-white border-l border-gray-200 flex flex-col shadow-xl z-10" v-if="blockStore.currentBlock">
       <StudySidebar />
     </div>
     <div v-else class="w-0 overflow-hidden transition-all duration-300"></div>
@@ -66,7 +77,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useBlockStore } from './stores/blockStore'
-import { Folder, Document, EditPen, Files, FolderAdd, Upload } from '@element-plus/icons-vue'
+import { Folder, Document, EditPen, Files, FolderAdd, Upload, Delete } from '@element-plus/icons-vue'
 import axios from 'axios'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import FilePreview from './components/FilePreview.vue'
@@ -99,11 +110,31 @@ const handleNodeClick = (data) => {
   if (data.type === 'FOLDER') {
     currentFolderId = data.id
   } else {
-    // 如果是文件，设置当前预览
     blockStore.selectBlock(data)
     // 如果文件也有父级，也可以更新 currentFolderId (可选)
-    currentFolderId = data.parentId
+    if (data.parentId) {
+      currentFolderId = data.parentId
+    }
   }
+}
+
+// 删除节点
+const handleDelete = (data) => {
+  ElMessageBox.confirm(
+    '确定要删除吗？如果是文件夹，将删除其下所有内容。',
+    '警告',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  )
+    .then(() => {
+      blockStore.deleteBlock(data.id)
+    })
+    .catch(() => {
+      // cancel
+    })
 }
 
 // 创建文件夹
@@ -140,6 +171,6 @@ const handleUpload = async (e) => {
 
 <style scoped>
 .custom-tree-node {
-  font-size: 14px;
+  font-size: 13px;
 }
 </style>

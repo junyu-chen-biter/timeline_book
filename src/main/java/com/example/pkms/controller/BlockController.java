@@ -158,5 +158,41 @@ public class BlockController {
     public List<BlockRecommendationDTO> getRecommended() {
         return recommendationService.getRecommendedFiles();
     }
+
+    // Delete a Block (File or Folder)
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBlock(@PathVariable Long id) {
+        try {
+            Block block = blockRepository.findById(id).orElseThrow(() -> new RuntimeException("Block not found"));
+            deleteBlockRecursive(block);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    private void deleteBlockRecursive(Block block) {
+        // Find children
+        List<Block> children = blockRepository.findByParentId(block.getId());
+        for (Block child : children) {
+            deleteBlockRecursive(child);
+        }
+
+        // Delete file if exists
+        if (block.getFilePath() != null) {
+            try {
+                // Use absolute path for safety, similar to upload logic
+                Path uploadPath = Paths.get("uploads").toAbsolutePath();
+                Path filePath = uploadPath.resolve(block.getFilePath());
+                Files.deleteIfExists(filePath);
+            } catch (IOException e) {
+                System.err.println("Failed to delete file: " + block.getFilePath());
+                e.printStackTrace();
+            }
+        }
+
+        blockRepository.delete(block);
+    }
 }
 
