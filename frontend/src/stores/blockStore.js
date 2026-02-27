@@ -31,11 +31,17 @@ export const useBlockStore = defineStore('block', () => {
   }
 
   // 上传文件
-  const uploadFile = async (file, parentId) => {
+  const uploadFile = async (file, parentId, subjectId, estimatedReviewTimeMinutes) => {
     const formData = new FormData()
     formData.append('file', file)
     if (parentId) {
       formData.append('parentId', parentId)
+    }
+    if (subjectId) {
+      formData.append('subjectId', subjectId)
+    }
+    if (estimatedReviewTimeMinutes) {
+      formData.append('estimatedReviewTimeMinutes', estimatedReviewTimeMinutes)
     }
 
     try {

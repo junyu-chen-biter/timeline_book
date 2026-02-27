@@ -22,12 +22,17 @@ public class Block {
     private BlockType type;
 
     private String filePath; // Relative path in uploads dir, null for FOLDER
-
-    // Subject Attributes (Usually set on Folder blocks)
-    // We will need logic to inherit these if not set on the file itself
-    private Integer difficulty; // 1-10
-    private Double credits;     // Credit weight
-    private LocalDate ddl;      // Deadline
+    
+    // New: Subject assignment for files
+    private Long subjectId; // Required for files; null indicates Unassigned (to be migrated)
+    // Estimated review time for a file (minutes)
+    @Column(columnDefinition = "integer default 30")
+    private Integer estimatedReviewTimeMinutes;
+    
+    // Legacy attributes kept for backward compatibility (mainly on Folder blocks)
+    private Integer difficulty; // 1-10 (legacy)
+    private Double credits;     // Credit weight (legacy)
+    private LocalDate ddl;      // Deadline (legacy)
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

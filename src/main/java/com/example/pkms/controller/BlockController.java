@@ -62,7 +62,9 @@ public class BlockController {
     // Upload a File
     @PostMapping("/upload")
     public Block uploadFile(@RequestParam("file") MultipartFile file,
-                            @RequestParam(value = "parentId", required = false) Long parentId) throws IOException {
+                            @RequestParam(value = "parentId", required = false) Long parentId,
+                            @RequestParam(value = "subjectId", required = false) Long subjectId,
+                            @RequestParam(value = "estimatedReviewTimeMinutes", required = false) Integer estMinutes) throws IOException {
         
         try {
             System.out.println("Uploading file: " + file.getOriginalFilename() + ", Size: " + file.getSize());
@@ -102,9 +104,9 @@ public class BlockController {
             block.setParentId(parentId);
             block.setFilePath(targetLocation.toString());
             
-            // Default attributes
-            block.setDifficulty(1);
-            block.setCredits(1.0);
+            // Subject assignment and defaults
+            block.setSubjectId(subjectId);
+            block.setEstimatedReviewTimeMinutes(estMinutes != null ? estMinutes : 30);
 
             return blockRepository.save(block);
         } catch (Exception e) {
@@ -113,14 +115,13 @@ public class BlockController {
         }
     }
 
-    // Update Attributes (Difficulty, Credits, DDL)
+    // Update Attributes
     @PatchMapping("/{id}")
     public Block updateBlock(@PathVariable Long id, @RequestBody Block updates) {
         return blockRepository.findById(id).map(block -> {
             if (updates.getName() != null) block.setName(updates.getName());
-            if (updates.getDifficulty() != null) block.setDifficulty(updates.getDifficulty());
-            if (updates.getCredits() != null) block.setCredits(updates.getCredits());
-            if (updates.getDdl() != null) block.setDdl(updates.getDdl());
+            if (updates.getSubjectId() != null) block.setSubjectId(updates.getSubjectId());
+            if (updates.getEstimatedReviewTimeMinutes() != null) block.setEstimatedReviewTimeMinutes(updates.getEstimatedReviewTimeMinutes());
             return blockRepository.save(block);
         }).orElseThrow(() -> new RuntimeException("Block not found"));
     }

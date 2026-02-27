@@ -2,6 +2,27 @@
   <div class="flex flex-col h-full bg-white">
     <div class="p-4 border-b border-gray-100">
       <h2 class="font-bold text-gray-700 mb-2">学习助手</h2>
+      
+      <!-- Subject Selection -->
+      <div class="mb-3">
+        <label class="text-xs text-gray-400 mb-1 block">所属科目</label>
+        <el-select 
+          v-model="currentSubjectId" 
+          placeholder="选择科目" 
+          size="small" 
+          filterable
+          @change="handleSubjectChange"
+          class="w-full"
+        >
+          <el-option 
+            v-for="s in subjectList" 
+            :key="s.id" 
+            :label="s.name" 
+            :value="s.id" 
+          />
+        </el-select>
+      </div>
+
       <div class="text-xs text-gray-500 flex justify-between">
         <span>上次复习: {{ lastReviewTime }}</span>
         <span>次数: {{ reviewCount }}</span>
@@ -46,15 +67,38 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { useBlockStore } from '../stores/blockStore'
 import dayjs from 'dayjs'
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
 
 const blockStore = useBlockStore()
 const noteContent = ref('')
 const reviewProgress = ref(100)
+const subjectList = ref([])
+const currentSubjectId = ref(null)
 
-// 同步 Store 中的记录到本地状态
+// Fetch subjects
+const fetchSubjects = async () => {
+  try {
+    const res = await axios.get('/api/subjects')
+    subjectList.value = res.data
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+// Watch current block to update subject selection
+watch(() => blockStore.currentBlock, (newBlock) => {
+  if (newBlock) {
+    currentSubjectId.value = newBlock.subjectId || null
+  } else {
+    currentSubjectId.value = null
+  }
+}, { immediate: true })
+
+// Sync record to local state
 watch(() => blockStore.currentRecord, (newRecord) => {
   if (newRecord) {
     noteContent.value = newRecord.note || ''
@@ -72,15 +116,34 @@ const lastReviewTime = computed(() => {
 
 const reviewCount = computed(() => blockStore.currentRecord?.reviewCount || 0)
 
-const handleSaveNote = () => {
-  blockStore.saveNote(noteContent.value)
+const handleSubjectChange = async (val) => {
+  if (!blockStore.currentBlock) return
+  try {
+    await axios.patch(`/api/blocks/${blockStore.currentBlock.id}`, {
+      subjectId: val
+    })
+    // Update local store manually to reflect change without full refresh
+    blockStore.currentBlock.subjectId = val
+    ElMessage.success('科目已更新')
+    blockStore.triggerRefresh() // Refresh tree/list if needed
+  } catch (e) {
+    ElMessage.error('更新科目失败')
+  }
 }
 
-const handleReview = () => {
-  blockStore.reviewCheckIn(reviewProgress.value, false)
+const handleSaveNote = async () => {
+  await blockStore.saveNote(noteContent.value)
 }
 
-const handleMaster = () => {
-  blockStore.reviewCheckIn(100, true)
+const handleReview = async () => {
+  await blockStore.reviewCheckIn(reviewProgress.value, false)
 }
+
+const handleMaster = async () => {
+  await blockStore.reviewCheckIn(100, true)
+}
+
+onMounted(() => {
+  fetchSubjects()
+})
 </script>

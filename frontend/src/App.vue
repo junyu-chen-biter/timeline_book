@@ -7,7 +7,7 @@
         <h2 class="font-bold text-gray-700">资源库</h2>
         <div class="space-x-2">
           <el-button size="small" :icon="FolderAdd" circle @click="handleCreateFolder" />
-          <el-button size="small" :icon="Upload" circle @click="triggerUpload" />
+          <el-button size="small" :icon="Upload" circle @click="openUploadDialog" />
           <input type="file" ref="fileInput" class="hidden" @change="handleUpload" />
         </div>
       </div>
@@ -72,10 +72,29 @@
     <div v-else class="w-0 overflow-hidden transition-all duration-300"></div>
 
   </div>
+  <!-- 上传前选择科目 -->
+  <el-dialog v-model="showUploadDialog" title="选择科目与预计时长" width="420px">
+    <el-form label-width="100px">
+      <el-form-item label="所属科目">
+        <el-select v-model="selectedSubjectId" placeholder="请选择科目" filterable>
+          <el-option v-for="s in subjectList" :key="s.id" :label="s.name" :value="s.id" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="预计复习时长">
+        <el-input v-model.number="estimatedMinutes" placeholder="例如 30（分钟）" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="showUploadDialog = false">取消</el-button>
+        <el-button type="primary" @click="confirmUpload">继续选择文件</el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useBlockStore } from './stores/blockStore'
 import { Folder, Document, EditPen, Files, FolderAdd, Upload, Delete } from '@element-plus/icons-vue'
 import axios from 'axios'
@@ -87,6 +106,10 @@ import Dashboard from './components/Dashboard.vue'
 const blockStore = useBlockStore()
 const fileInput = ref(null)
 let currentFolderId = null // 用于记录当前选中的文件夹ID，以便上传到该文件夹
+const showUploadDialog = ref(false)
+const subjectList = ref([])
+const selectedSubjectId = ref(null)
+const estimatedMinutes = ref(30)
 
 const defaultProps = {
   label: 'name',
@@ -154,7 +177,24 @@ const handleCreateFolder = async () => {
 }
 
 // 上传文件
-const triggerUpload = () => {
+const openUploadDialog = async () => {
+  try {
+    const res = await axios.get('/api/subjects')
+    subjectList.value = res.data
+  } catch (e) {
+    subjectList.value = []
+  }
+  selectedSubjectId.value = null
+  estimatedMinutes.value = 30
+  showUploadDialog.value = true
+}
+
+const confirmUpload = () => {
+  if (!selectedSubjectId.value) {
+    ElMessage.error('请先选择科目')
+    return
+    }
+  showUploadDialog.value = false
   fileInput.value.click()
 }
 
@@ -162,11 +202,20 @@ const handleUpload = async (e) => {
   const file = e.target.files[0]
   if (!file) return
   
-  await blockStore.uploadFile(file, currentFolderId)
+  await blockStore.uploadFile(file, currentFolderId, selectedSubjectId.value, estimatedMinutes.value)
   ElMessage.success('上传成功')
   // 清空 input 以便重复上传同名文件
   fileInput.value.value = ''
 }
+
+onMounted(async () => {
+  try {
+    const res = await axios.get('/api/subjects')
+    subjectList.value = res.data
+  } catch (e) {
+    // ignore
+  }
+})
 </script>
 
 <style scoped>
