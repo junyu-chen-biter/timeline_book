@@ -1,6 +1,6 @@
 <template>
-  <div class="h-full overflow-auto bg-gray-50 p-8">
-    <div class="mx-auto max-w-4xl">
+  <div class="h-full overflow-auto bg-transparent p-8">
+    <div class="w-full">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold text-gray-800">👋 欢迎回来，开始今天的学习吧！</h1>
         <div class="flex gap-3">
