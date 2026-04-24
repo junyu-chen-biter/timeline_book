@@ -1,0 +1,28 @@
+{
+  "name": "timeline_book",
+  "version": "1.0.0",
+  "description": "这是一个本地的笔记本，可以在一个页面中实现对于pdf，markdown等文件的浏览和批注记笔记，以及分块整理，同时设计了初步的复习机制，监测上次打开时间来提醒定定时复习，目的是想解决学了就扔的坏毛病",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/junyu-chen-biter/timeline_book.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/junyu-chen-biter/timeline_book/issues"
+  },
+  "homepage": "https://github.com/junyu-chen-biter/timeline_book#readme",
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.19"
+  },
+  "dependencies": {
+    "highlight.js": "^11.11.1",
+    "markdown-it-task-lists": "^2.1.1"
+  }
+}

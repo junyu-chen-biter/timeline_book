@@ -1,17 +1,35 @@
 <template>
   <div class="flex h-screen w-full bg-gray-50 overflow-hidden">
-    
     <!-- Left Sidebar: Resource Tree -->
-    <div class="w-[20%] min-w-[200px] bg-white border-r border-gray-200 flex flex-col">
-      <div class="p-3 border-b border-gray-100 flex justify-between items-center">
+    <div
+      class="w-[5%] min-w-[170px] bg-white border-r border-gray-200 flex flex-col"
+    >
+      <div
+        class="p-3 border-b border-gray-100 flex justify-between items-center"
+      >
         <h2 class="font-bold text-gray-700">资源库</h2>
         <div class="space-x-2">
-          <el-button size="small" :icon="FolderAdd" circle @click="handleCreateFolder" />
-          <el-button size="small" :icon="Upload" circle @click="openUploadDialog" />
-          <input type="file" ref="fileInput" class="hidden" @change="handleUpload" />
+          <el-button
+            size="small"
+            :icon="FolderAdd"
+            circle
+            @click="handleCreateFolder"
+          />
+          <el-button
+            size="small"
+            :icon="Upload"
+            circle
+            @click="openUploadDialog"
+          />
+          <input
+            type="file"
+            ref="fileInput"
+            class="hidden"
+            @change="handleUpload"
+          />
         </div>
       </div>
-      
+
       <el-scrollbar class="flex-1">
         <el-tree
           :key="blockStore.refreshTreeTrigger"
@@ -22,20 +40,24 @@
           highlight-current
         >
           <template #default="{ node, data }">
-            <div class="custom-tree-node flex items-center justify-between w-full pr-2 group">
+            <div
+              class="custom-tree-node flex items-center justify-between w-full pr-2 group"
+            >
               <span class="flex items-center gap-2 overflow-hidden">
                 <el-icon v-if="data.type === 'FOLDER'"><Folder /></el-icon>
                 <el-icon v-else-if="data.type === 'PDF'"><Document /></el-icon>
-                <el-icon v-else-if="data.type === 'MARKDOWN'"><EditPen /></el-icon>
+                <el-icon v-else-if="data.type === 'MARKDOWN'"
+                  ><EditPen
+                /></el-icon>
                 <el-icon v-else><Files /></el-icon>
                 <span class="truncate">{{ node.label }}</span>
               </span>
               <!-- Delete Button (Visible on hover) -->
-              <el-button 
-                type="danger" 
-                link 
-                :icon="Delete" 
-                size="small" 
+              <el-button
+                type="danger"
+                link
+                :icon="Delete"
+                size="small"
                 class="opacity-0 group-hover:opacity-100 transition-opacity"
                 @click.stop="handleDelete(data)"
               />
@@ -46,19 +68,27 @@
     </div>
 
     <!-- Center: Content Preview -->
-    <div class="flex-1 flex flex-col overflow-hidden bg-gray-100 relative">
+    <div
+      class="flex-1 min-w-0 flex flex-col overflow-hidden bg-gray-100 relative"
+    >
       <div v-if="blockStore.currentBlock" class="h-full flex flex-col">
         <!-- Toolbar -->
-        <div class="h-12 bg-white border-b border-gray-200 flex items-center px-4 shadow-sm">
-          <h1 class="text-lg font-medium text-gray-800">{{ blockStore.currentBlock.name }}</h1>
+        <div
+          class="h-12 bg-white border-b border-gray-200 flex items-center px-4 shadow-sm"
+        >
+          <h1 class="text-lg font-medium text-gray-800">
+            {{ blockStore.currentBlock.name }}
+          </h1>
         </div>
-        
+
         <!-- Preview Area -->
-        <div class="flex-1 overflow-auto p-0 flex justify-center items-center bg-gray-50">
-           <FilePreview :block="blockStore.currentBlock" />
+        <div
+          class="flex-1 min-w-0 min-h-0 overflow-hidden p-0 flex items-stretch bg-gray-50"
+        >
+          <FilePreview :block="blockStore.currentBlock" />
         </div>
       </div>
-      
+
       <div v-else class="h-full flex flex-col">
         <!-- Dashboard when no file selected -->
         <Dashboard />
@@ -66,156 +96,193 @@
     </div>
 
     <!-- Right Sidebar: Study Tools -->
-    <div class="w-[30%] min-w-[300px] bg-white border-l border-gray-200 flex flex-col shadow-xl z-10" v-if="blockStore.currentBlock">
+    <div
+      class="w-[35%] min-w-[420px] bg-white border-l border-gray-200 flex flex-col shadow-xl z-10"
+      v-if="blockStore.currentBlock"
+    >
       <StudySidebar />
     </div>
     <div v-else class="w-0 overflow-hidden transition-all duration-300"></div>
-
   </div>
   <!-- 上传前选择科目 -->
-  <el-dialog v-model="showUploadDialog" title="选择科目与预计时长" width="420px">
+  <el-dialog
+    v-model="showUploadDialog"
+    title="选择科目与预计时长"
+    width="420px"
+  >
     <el-form label-width="100px">
       <el-form-item label="所属科目">
-        <el-select v-model="selectedSubjectId" placeholder="请选择科目" filterable>
-          <el-option v-for="s in subjectList" :key="s.id" :label="s.name" :value="s.id" />
+        <el-select
+          v-model="selectedSubjectId"
+          placeholder="请选择科目"
+          filterable
+        >
+          <el-option
+            v-for="s in subjectList"
+            :key="s.id"
+            :label="s.name"
+            :value="s.id"
+          />
         </el-select>
       </el-form-item>
       <el-form-item label="预计复习时长">
-        <el-input v-model.number="estimatedMinutes" placeholder="例如 30（分钟）" />
+        <el-input
+          v-model.number="estimatedMinutes"
+          placeholder="例如 30（分钟）"
+        />
       </el-form-item>
     </el-form>
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="showUploadDialog = false">取消</el-button>
-        <el-button type="primary" @click="confirmUpload">继续选择文件</el-button>
+        <el-button type="primary" @click="confirmUpload"
+          >继续选择文件</el-button
+        >
       </div>
     </template>
   </el-dialog>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useBlockStore } from './stores/blockStore'
-import { Folder, Document, EditPen, Files, FolderAdd, Upload, Delete } from '@element-plus/icons-vue'
-import axios from 'axios'
-import { ElMessageBox, ElMessage } from 'element-plus'
-import FilePreview from './components/FilePreview.vue'
-import StudySidebar from './components/StudySidebar.vue'
-import Dashboard from './components/Dashboard.vue'
+import { ref, onMounted } from "vue";
+import { useBlockStore } from "./stores/blockStore";
+import {
+  Folder,
+  Document,
+  EditPen,
+  Files,
+  FolderAdd,
+  Upload,
+  Delete,
+} from "@element-plus/icons-vue";
+import axios from "axios";
+import { ElMessageBox, ElMessage } from "element-plus";
+import FilePreview from "./components/FilePreview.vue";
+import StudySidebar from "./components/StudySidebar.vue";
+import Dashboard from "./components/Dashboard.vue";
 
-const blockStore = useBlockStore()
-const fileInput = ref(null)
-let currentFolderId = null // 用于记录当前选中的文件夹ID，以便上传到该文件夹
-const showUploadDialog = ref(false)
-const subjectList = ref([])
-const selectedSubjectId = ref(null)
-const estimatedMinutes = ref(30)
+const blockStore = useBlockStore();
+const fileInput = ref(null);
+let currentFolderId = null; // 用于记录当前选中的文件夹ID，以便上传到该文件夹
+const showUploadDialog = ref(false);
+const subjectList = ref([]);
+const selectedSubjectId = ref(null);
+const estimatedMinutes = ref(30);
 
 const defaultProps = {
-  label: 'name',
-  children: 'children',
-  isLeaf: (data, node) => data.type !== 'FOLDER'
-}
+  label: "name",
+  children: "children",
+  isLeaf: (data, node) => data.type !== "FOLDER",
+};
 
 // 懒加载逻辑
 const loadNode = async (node, resolve) => {
-  const parentId = node.level === 0 ? null : node.data.id
+  const parentId = node.level === 0 ? null : node.data.id;
   try {
-    const res = await axios.get('/api/blocks', { params: { parentId } })
-    resolve(res.data)
+    const res = await axios.get("/api/blocks", { params: { parentId } });
+    resolve(res.data);
   } catch (e) {
-    resolve([])
+    resolve([]);
   }
-}
+};
 
 // 点击节点
 const handleNodeClick = (data) => {
-  if (data.type === 'FOLDER') {
-    currentFolderId = data.id
+  if (data.type === "FOLDER") {
+    currentFolderId = data.id;
   } else {
-    blockStore.selectBlock(data)
+    blockStore.selectBlock(data);
     // 如果文件也有父级，也可以更新 currentFolderId (可选)
     if (data.parentId) {
-      currentFolderId = data.parentId
+      currentFolderId = data.parentId;
     }
   }
-}
+};
 
 // 删除节点
 const handleDelete = (data) => {
   ElMessageBox.confirm(
-    '确定要删除吗？如果是文件夹，将删除其下所有内容。',
-    '警告',
+    "确定要删除吗？如果是文件夹，将删除其下所有内容。",
+    "警告",
     {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+    },
   )
     .then(() => {
-      blockStore.deleteBlock(data.id)
+      blockStore.deleteBlock(data.id);
     })
     .catch(() => {
       // cancel
-    })
-}
+    });
+};
 
 // 创建文件夹
 const handleCreateFolder = async () => {
   try {
-    const { value } = await ElMessageBox.prompt('请输入文件夹名称', '新建文件夹', {
-      confirmButtonText: '创建',
-      cancelButtonText: '取消',
-    })
+    const { value } = await ElMessageBox.prompt(
+      "请输入文件夹名称",
+      "新建文件夹",
+      {
+        confirmButtonText: "创建",
+        cancelButtonText: "取消",
+      },
+    );
     if (value) {
-      await blockStore.createFolder(value, currentFolderId)
-      ElMessage.success('创建成功')
+      await blockStore.createFolder(value, currentFolderId);
+      ElMessage.success("创建成功");
     }
   } catch (e) {
     // Cancelled
   }
-}
+};
 
 // 上传文件
 const openUploadDialog = async () => {
   try {
-    const res = await axios.get('/api/subjects')
-    subjectList.value = res.data
+    const res = await axios.get("/api/subjects");
+    subjectList.value = res.data;
   } catch (e) {
-    subjectList.value = []
+    subjectList.value = [];
   }
-  selectedSubjectId.value = null
-  estimatedMinutes.value = 30
-  showUploadDialog.value = true
-}
+  selectedSubjectId.value = null;
+  estimatedMinutes.value = 30;
+  showUploadDialog.value = true;
+};
 
 const confirmUpload = () => {
   if (!selectedSubjectId.value) {
-    ElMessage.error('请先选择科目')
-    return
-    }
-  showUploadDialog.value = false
-  fileInput.value.click()
-}
+    ElMessage.error("请先选择科目");
+    return;
+  }
+  showUploadDialog.value = false;
+  fileInput.value.click();
+};
 
 const handleUpload = async (e) => {
-  const file = e.target.files[0]
-  if (!file) return
-  
-  await blockStore.uploadFile(file, currentFolderId, selectedSubjectId.value, estimatedMinutes.value)
-  ElMessage.success('上传成功')
+  const file = e.target.files[0];
+  if (!file) return;
+
+  await blockStore.uploadFile(
+    file,
+    currentFolderId,
+    selectedSubjectId.value,
+    estimatedMinutes.value,
+  );
+  ElMessage.success("上传成功");
   // 清空 input 以便重复上传同名文件
-  fileInput.value.value = ''
-}
+  fileInput.value.value = "";
+};
 
 onMounted(async () => {
   try {
-    const res = await axios.get('/api/subjects')
-    subjectList.value = res.data
+    const res = await axios.get("/api/subjects");
+    subjectList.value = res.data;
   } catch (e) {
     // ignore
   }
-})
+});
 </script>
 
 <style scoped>

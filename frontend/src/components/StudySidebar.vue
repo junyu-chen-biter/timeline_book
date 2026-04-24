@@ -56,12 +56,23 @@
 
     <!-- Note Editor -->
     <div class="flex-1 p-3 flex flex-col overflow-hidden">
-      <label class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">笔记 / 疑惑点</label>
-      <textarea 
-        v-model="noteContent"
-        class="flex-1 w-full p-3 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm transition-all shadow-sm"
-        placeholder="在这里记录你的想法..."
-      ></textarea>
+      <div class="flex items-center justify-between mb-2">
+        <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">笔记 / 疑惑点</label>
+        <div class="flex gap-2">
+          <el-button size="small" :type="!previewMode ? 'primary' : 'default'" @click="previewMode = false">编辑</el-button>
+          <el-button size="small" :type="previewMode ? 'primary' : 'default'" @click="previewMode = true">预览</el-button>
+        </div>
+      </div>
+      <div v-if="!previewMode" class="flex-1 flex flex-col overflow-hidden">
+        <textarea 
+          v-model="noteContent"
+          class="flex-1 w-full p-3 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm transition-all shadow-sm"
+          placeholder="在这里记录你的想法..."
+        ></textarea>
+      </div>
+      <div v-else class="flex-1 w-full overflow-auto p-3 bg-white">
+        <div class="prose prose-sm prose-slate max-w-none" v-html="renderedContent"></div>
+      </div>
     </div>
   </div>
 </template>
@@ -73,11 +84,38 @@ import dayjs from 'dayjs'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
+// Markdown & Highlighting
+import MarkdownIt from 'markdown-it'
+import taskLists from 'markdown-it-task-lists'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/github.css' // Using standard github style, can switch to 'github-dark.css' if preferred
+
 const blockStore = useBlockStore()
 const noteContent = ref('')
 const reviewProgress = ref(100)
 const subjectList = ref([])
 const currentSubjectId = ref(null)
+const previewMode = ref(false)
+
+// Configure MarkdownIt
+const md = new MarkdownIt({
+  linkify: true,
+  breaks: true,
+  html: true,
+  highlight: function (str, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return `<pre class="hljs"><code>${hljs.highlight(str, { language: lang, ignoreIllegals: true }).value}</code></pre>`
+      } catch (__) {}
+    }
+    return `<pre class="hljs"><code>${md.utils.escapeHtml(str)}</code></pre>`
+  }
+})
+md.use(taskLists, { label: true, labelAfter: true })
+
+const renderedContent = computed(() => {
+  return md.render(noteContent.value || '')
+})
 
 // Fetch subjects
 const fetchSubjects = async () => {
@@ -103,9 +141,11 @@ watch(() => blockStore.currentRecord, (newRecord) => {
   if (newRecord) {
     noteContent.value = newRecord.note || ''
     reviewProgress.value = newRecord.lastReviewProgress || 100
+    previewMode.value = !!newRecord.note
   } else {
     noteContent.value = ''
     reviewProgress.value = 100
+    previewMode.value = false
   }
 }, { immediate: true })
 
@@ -133,6 +173,7 @@ const handleSubjectChange = async (val) => {
 
 const handleSaveNote = async () => {
   await blockStore.saveNote(noteContent.value)
+  previewMode.value = true
 }
 
 const handleReview = async () => {
@@ -147,3 +188,11 @@ onMounted(() => {
   fetchSubjects()
 })
 </script>
+
+<style>
+/* 
+  We are using Tailwind Typography plugin (prose class), 
+  so we don't need manual markdown styles here. 
+  highlight.js css is imported in script.
+*/
+</style>

@@ -37,8 +37,8 @@ public class RecommendationService {
     private GeneralEventRecommendationDTO calculateEventScore(GeneralEvent event) {
         // Weights
         double wU = 0.5; // Urgency
-        double wI = 0.3; // Importance
-        double wD = 0.2; // Duration (Short job first)
+        double wI = 0.35; // Importance
+        double wD = 0.15; // Duration (Short job first)
 
         // 1. Urgency (U)
         double U = 0.0;
